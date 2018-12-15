@@ -41,6 +41,46 @@ function obterEndereco(idUsuario, callback) {
   }, 2500);
 }
 
+main();
+
+// adicionar a palavra async -> automaticamente ela retornará uma Promise
+async function main() {
+  try {
+    /* Menos performático: 5509.214ms
+    console.time('medida-promise');
+    const usuario = await obterUsuario();
+    const telefone = await obterTelefone(usuario.id);
+    const endereco = await obterEnderecoAsync(usuario.id);
+
+    console.log(`
+      Nome: ${usuario.nome}
+      Endereço: ${endereco.rua}, ${endereco.numero}
+      Telefone: (${telefone.ddd}) ${telefone.telefone}
+    `);
+    console.timeEnd('medida-promise');
+    */
+
+    /** Mais performático: 3515.137ms */
+    console.time('medida-promise-2');
+    const usuario = await obterUsuario();
+    const resultado = await Promise.all([
+      obterTelefone(usuario.id),
+      obterEnderecoAsync(usuario.id)
+    ]);
+    const endereco = resultado[0];
+    const telefone = resultado[1];
+    console.log(`
+      Nome: ${usuario.nome}
+      Endereço: ${endereco.rua}, ${endereco.numero}
+      Telefone: (${telefone.ddd}) ${telefone.telefone}
+    `);
+    console.timeEnd('medida-promise-2');
+  } catch (error) {
+    console.error('Deu zika ', error);
+  }
+}
+
+/*
 const usuarioPromise = obterUsuario();
 // para manipular o sucesso, usamos a função .then()
 // para manipular o erro, usamos a função .catch()
@@ -79,6 +119,7 @@ usuarioPromise
   .catch(function (error) {
     console.error('Deu zika: ', error);
   });
+*/
 
 /*
 obterUsuario(function resolverUsuario(erroUsuario, usuario) {
