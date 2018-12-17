@@ -10,7 +10,7 @@ async function obterPessoas(nome) {
 
 obterPessoas('r2')
   .then(function (resultado) {
-    console.log('resultado: ', resultado);
+    // console.log('resultado: ', resultado);
   })
   .catch(function (error) {
    console.error('Deu zika ', error); 
