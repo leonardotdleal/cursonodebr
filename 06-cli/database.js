@@ -1,7 +1,8 @@
-const { readFile } = require('fs');
+const { readFile, writeFile } = require('fs');
 const { promisify } = require('util');
 
 const readFileAsync = promisify(readFile);
+const writeFileAsync = promisify(writeFile);
 
 // outra forma de obter dados do json
 const dadosJson = require('./herois.json');
@@ -18,8 +19,19 @@ class Database {
     return JSON.parse(arquivo.toString());
   }
 
-  escreverArquivo() {
+  async escreverArquivo(dados) {
+    await writeFileAsync(this.NOME_ARQUIVO, JSON.stringify(dados));
+    return true;
+  }
 
+  async cadastrar(heroi) {
+    const dados = await this.obterDadosArquivo();
+    const id = heroi.id <= 2 ? heroi.id : Date.now();
+
+    const heroiComId = { id, ...heroi };
+    const dadosFinal = [ ...dados, heroiComId ];
+    const resultado = await this.escreverArquivo(dadosFinal);
+    return resultado;
   }
 
   async listar(id) {
@@ -28,6 +40,42 @@ class Database {
     
     return dadosFiltrados;
   }
-}
+
+  async remover(id) {
+    if (!id) {
+      return await this.escreverArquivo([]);
+    }
+
+    const dados = await this.obterDadosArquivo();
+    const indice = dados.findIndex(item => item.id === parseInt(id));
+    
+    if (indice === -1) {
+      throw Error('O usuário informado não existe');
+    }
+    dados.splice(indice, 1);
+    return await this.escreverArquivo(dados);
+  }
+
+  async atualizar(id, newHeroi) {
+    const dados = await this.obterDadosArquivo();
+    const indice = dados.findIndex(item => item.id === parseInt(id));
+
+    if (indice === -1) {
+      throw Error('O Herói informado não existe');
+    }
+
+    const atual = dados[indice];
+    const objetoNovo = {
+      ...atual,
+      ...newHeroi
+    };
+    dados.splice(indice, 1);
+    
+    return await this.escreverArquivo([
+      ...dados,
+      objetoNovo
+    ]);
+  }
+ }
 
 module.exports = new Database();
